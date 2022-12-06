@@ -55,7 +55,6 @@ class MsgPlayerStats(BaseModel):
     type: Literal[MsgType.PlayerStats] = MsgType.PlayerStats
     id: int
     health: float
-    damage: float
 
 
 class MsgAttack(BaseModel):

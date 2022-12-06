@@ -6,6 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
+    public WeaponController currWeapon;
     public float speedMultiplier=10f;
     private Rigidbody2D rb;
     private Vector2 CurrentSpeed;
@@ -46,8 +47,12 @@ public class PlayerController : MonoBehaviour
         {
             CurrentSpeed.x = 1;
         }
-        
-        
+
+        if (Input.GetMouseButtonDown(0) )
+        {
+            currWeapon.ShootWeapon();
+        }
+
         rb.MovePosition(rb.position +  CurrentSpeed * Time.fixedDeltaTime * speedMultiplier);    
        
         

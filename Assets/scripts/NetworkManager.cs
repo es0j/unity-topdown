@@ -7,12 +7,47 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using UnityEngine;
-using UnityEngine.Networking.Types;
 
 
 
-   
+public class NetObject
+{
+    public int id;
+    public GameObject reference;
+    public Queue<string>[] netPackets = new Queue<string>[Enum.GetValues(typeof(PcktType)).Length];
+    
+    public NetObject(GameObject gref){
+        reference = gref;
+        foreach (PcktType pType in Enum.GetValues(typeof(PcktType)))
+        {
+            netPackets[(int)pType] = new Queue<string>();
+        }
+    }
+
+    public void DeliverPackets()
+    {
+        foreach (PcktType pType in Enum.GetValues(typeof(PcktType)))
+        {
+            foreach (string pkt in netPackets[(int)pType])
+            {
+                reference.GetComponent<PacketHandler>().HandlePacket(pType,pkt);        
+            }
+            netPackets[(int)pType].Clear();
+        }
+            
+    }
+
+    public void EnqueuePckt(PcktType t, string msg)
+    {
+        if (t == PcktType.PlayerInfo && netPackets[(int)t].Count == 1)
+        {
+            netPackets[(int)t].Dequeue();
+        }
+        netPackets[(int)t].Enqueue(msg);
+       
+    }
+}
+
 public class NetworkManager : MonoBehaviour
 {
     [SerializeField]
@@ -20,25 +55,28 @@ public class NetworkManager : MonoBehaviour
     
     private Thread rt;
     private Thread wt;
-
-
+    
     private Stream s;
     private StreamReader sr;
     private StreamWriter sw;
     private int netId;
-
-    //states to send
-    private PlayerInfo playerState = new PlayerInfo();
-    private Queue<Packet> ActionsQueue = new Queue<Packet>(); 
+    
 
     private bool isRunning=true;
     
     private static Mutex mut = new Mutex();
     
-    private Dictionary<int, GameObject> netObjects = new Dictionary<int, GameObject>();
-    private Dictionary<int,PlayerInfo> pInfoList = new Dictionary<int, PlayerInfo>();
+    //holds reference to replicated netObjects
+    private Dictionary<int, NetObject> netObjects = new Dictionary<int, NetObject>();
+    
+    //holds Packets to be processed as pEnter
     private Queue<PlayerEnter> pEnterList = new Queue<PlayerEnter>();
+    
+    //holds Packets to be processed as pEnter
+    private Queue<PlayerLeave> pLeaveList = new Queue<PlayerLeave>();
 
+    private PlayerInfo playerState = new PlayerInfo();
+    private Queue<Packet> ActionsQueue = new Queue<Packet>(); 
 
     #region Singleton
     public static NetworkManager instance=null;
@@ -56,9 +94,10 @@ public class NetworkManager : MonoBehaviour
     
     void Start()
     {
+        Application.runInBackground = true;
         TcpClient client = new TcpClient();
         //client.ReceiveTimeout = 1000;
-        if (!client.ConnectAsync("127.0.0.1", 9090).Wait(1000))
+        if (!client.ConnectAsync("127.0.0.1", 9090).Wait(10000))
         {
             Debug.LogWarning("Failed to connect");
             return;
@@ -95,21 +134,32 @@ public class NetworkManager : MonoBehaviour
         {
             mut.WaitOne();
 
+            //deals with playerEntry
             foreach (PlayerEnter p in pEnterList)
             {
-                HandlePlayerEnter(p);
+                Debug.Log("Spawning at: "+p.y+"+"+p.x);
+                Vector3 newPosition = new Vector3(p.x,p.y);
+        
+                GameObject newObject = Instantiate(entitiesTypes[p.gid],newPosition,Quaternion.identity);
+                netObjects[p.id] = new NetObject(newObject);
             }
-
             pEnterList.Clear();
 
-            foreach (int p in pInfoList.Keys)
+            //deals with playerLeaving
+            foreach (PlayerLeave p in pLeaveList)
             {
-                HandlePInfo(pInfoList[p]);
+                Debug.Log("Despawining id=: "+p.id);
+                Destroy( netObjects[p.id].reference);
+                netObjects.Remove(p.id);
             }
-
-            pInfoList.Clear();
-
-
+            pLeaveList.Clear();
+            
+            //delivers packets to respective components
+            foreach (NetObject n in netObjects.Values)
+            {
+                n.DeliverPackets();
+            }
+            
             mut.ReleaseMutex();
         }
         catch (Exception e)
@@ -185,7 +235,7 @@ public class NetworkManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError("ExceptionWriter: {0}"+ e);
+            Debug.LogError("ExceptionWriter: "+ e);
             mut.ReleaseMutex();
             s.Close();
         }
@@ -221,51 +271,26 @@ public class NetworkManager : MonoBehaviour
     {
         Debug.Log("ParsePacket recved: "+msg);
         Packet p = JsonConvert.DeserializeObject<Packet>(msg);
+        
         switch (p.type)
         {
             case PcktType.Error:
                 Debug.LogError("Crash from gameserver: "+msg);
                 break;
-            case PcktType.PlayerInfo:
-                PlayerInfo pInfo =  JsonConvert.DeserializeObject<PlayerInfo>(msg);
-                pInfoList[p.id]=pInfo;
-                break;
             case PcktType.PlayerEnter:
                 PlayerEnter pEnter = JsonConvert.DeserializeObject<PlayerEnter>(msg);
                 pEnterList.Enqueue(pEnter);
                 break;
+            case PcktType.PlayerLeave:
+                PlayerLeave pLeave = JsonConvert.DeserializeObject<PlayerLeave>(msg);
+                break;
             default:
-                Debug.LogWarning("Unknown packet:"+msg);
+                netObjects[p.id].EnqueuePckt(p.type,msg);
                 break;
                 
         }
         
         
-        
-    }
-
-    public void HandlePInfo(PlayerInfo p)
-    {
-        Vector3 newPosition = new Vector3(p.x,p.y);
-        if (netObjects.ContainsKey(p.id))
-        {
-            netObjects[p.id].transform.position = newPosition;    
-        }
-        else
-        {
-            Debug.LogWarning("Recivigin update for unexisted netobject");
-        }
-        
-    }
-    
-    public void HandlePlayerEnter(PlayerEnter p)
-    {
-        Debug.Log("Spawning at: "+p.y+"+"+p.x);
-
-        GameObject newObject = Instantiate(entitiesTypes[p.gid]);
-        netObjects[p.id] = newObject;
-        Vector3 newPosition = new Vector3(p.x,p.y);
-        netObjects[p.id].transform.position = newPosition;
         
     }
 }

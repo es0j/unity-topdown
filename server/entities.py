@@ -117,7 +117,7 @@ class Client(Entity):
             return
 
         self.position = Vector2(msg.x, msg.y)
-
+        #print("replicating movement")
         await self.send_to_all(MsgPlayerInfo(id=self.id, x=msg.x, y=msg.y),ignoreClients=[self])
         
 

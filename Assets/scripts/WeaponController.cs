@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class WeaponController : MonoBehaviour
@@ -11,27 +12,37 @@ public class WeaponController : MonoBehaviour
     public Vector3 spawnPosition;
     //float currCountdownValue;
     // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
+    public bool ShootWeapon()
     {
-        if (Input.GetMouseButtonDown(0) && !isInCooldown)
+        if (isInCooldown)
         {
-            Debug.Log("Shooting!");
-            Transform bulletSpawnPoint = this.gameObject.transform.GetChild(0);
-            
-            Shoot s = new Shoot();
-            NetworkManager.instance.SendAction(s); 
-            
-            Instantiate(bulletType,bulletSpawnPoint.position ,bulletSpawnPoint.rotation);
-            isInCooldown = true;
-            
-            StartCoroutine(StartCountdown(cooldownTime));
+            return false;
         }
+        Transform bulletSpawnPoint = this.gameObject.transform.GetChild(0);
+            
+        Shoot s = new Shoot();
+        NetworkManager.instance.SendAction(s); 
+            
+        Instantiate(bulletType,bulletSpawnPoint.position ,bulletSpawnPoint.rotation);
+        isInCooldown = true;
+            
+        StartCoroutine(StartCountdown(cooldownTime));
+
+        return true;
+    }
+    void ShootVisual()
+    {
+        Debug.Log("Shooting!");
+        Transform bulletSpawnPoint = this.gameObject.transform.GetChild(0);
+            
+        Shoot s = new Shoot();
+        NetworkManager.instance.SendAction(s); 
+            
+        Instantiate(bulletType,bulletSpawnPoint.position ,bulletSpawnPoint.rotation);
+        isInCooldown = true;
+            
+        StartCoroutine(StartCountdown(cooldownTime));
         
     }
 

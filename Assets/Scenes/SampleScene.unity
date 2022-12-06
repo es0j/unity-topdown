@@ -276,6 +276,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player 1
       objectReference: {fileID: 0}
+    - target: {fileID: 734652169821059102, guid: a6289ae71d6125842b97204e7cd22220, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 734652169821059169, guid: a6289ae71d6125842b97204e7cd22220, type: 3}
       propertyPath: m_RootOrder
       value: 5
@@ -319,6 +323,10 @@ PrefabInstance:
     - target: {fileID: 734652169821059169, guid: a6289ae71d6125842b97204e7cd22220, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 734652169821059170, guid: a6289ae71d6125842b97204e7cd22220, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2435465282343157213, guid: a6289ae71d6125842b97204e7cd22220, type: 3}
       propertyPath: m_RootOrder
@@ -843,7 +851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entitiesTypes:
-  - {fileID: 3407029634303156715, guid: 90b21c0cdaa0f6a459d15a3e16238048, type: 3}
+  - {fileID: 734652169821059101, guid: a6289ae71d6125842b97204e7cd22220, type: 3}
   - {fileID: 5962073920739632371, guid: e7995c5446772e247b9a1d322ddaa290, type: 3}
 --- !u!114 &1862796180
 MonoBehaviour:

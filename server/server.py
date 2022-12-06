@@ -37,17 +37,17 @@ class server_class():
 
 
     async def server_mainloop(self):
-        #await self.spawnMonster()
+        await self.spawnMonster()
         while 1:
 
             #print("running game logic")
-            print(clients)
+            #print(clients)
             await asyncio.sleep(4)
             #await self.spawnMonster()
             
-            #for m in enemies.values():
-            #    m.update()
-            #    await self.send_to_all(MsgPlayerInfo(id=m.id, x=m.position.x, y=m.position.y))
+            for m in enemies.values():
+                m.update()
+                #await self.send_to_all(MsgPlayerInfo(id=m.id, x=m.position.x, y=m.position.y))
 
             
 

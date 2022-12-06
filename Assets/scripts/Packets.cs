@@ -14,8 +14,7 @@ public enum PcktType
     PlayerLeave,
     PlayerStats,
     Attack,
-    Shoot,
-    totalPckt
+    Shoot
 }
 
 public class Packet
@@ -77,6 +76,15 @@ public class PlayerEnter : Packet
     public int gid;
 }
 
+public class PlayerLeave : Packet
+{
+    public PlayerLeave()
+    {
+        type = PcktType.PlayerLeave;
+    }
+
+}
+
 public class Shoot : Packet
 {
     public Shoot()
@@ -85,3 +93,11 @@ public class Shoot : Packet
     }
 }
 
+public class PlayerStats : Packet
+{
+    public PlayerStats()
+    {
+        type = PcktType.PlayerStats;
+    }
+    public float health;
+}
