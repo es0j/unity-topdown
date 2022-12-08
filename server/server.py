@@ -47,7 +47,7 @@ class server_class():
             
             for m in enemies.values():
                 m.update()
-                #await self.send_to_all(MsgPlayerInfo(id=m.id, x=m.position.x, y=m.position.y))
+                await self.send_to_all(MsgPlayerInfo(id=m.id, x=m.position.x, y=m.position.y))
 
             
 

@@ -4,25 +4,15 @@ using UnityEngine;
 
 public class PlayerPacketHandler : PacketHandler
 {
-
-    public bool hasAuthority=false;
-    private PlayerInfo pState;
-    void Update()
-    {
-        if (hasAuthority) //send update packets to server only if object has authority
-        {
-            pState = new PlayerInfo();
-            pState.loadFromTransform(transform);
-            NetworkManager.instance.SendState(pState);                
-        }
-
-    }
-    
+    private PlayerController pController;
+    void Start(){
+        pController = GetComponent<PlayerController>();
+    } 
     
     // Start is called before the first frame update
     public virtual void HandleShoot(Shoot p)
     {
-    
+        pController.currWeaponController.ShootVisual();
     }
     
     public virtual void HandlePStats(PlayerStats p)

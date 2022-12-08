@@ -8,10 +8,7 @@ public class WeaponController : MonoBehaviour
     public GameObject bulletType;
     public float cooldownTime=0.5f;
     private bool isInCooldown = false;
-
     public Vector3 spawnPosition;
-    //float currCountdownValue;
-    // Start is called before the first frame update
 
     public bool ShootWeapon()
     {
@@ -31,13 +28,10 @@ public class WeaponController : MonoBehaviour
 
         return true;
     }
-    void ShootVisual()
+    public void ShootVisual()
     {
         Debug.Log("Shooting!");
         Transform bulletSpawnPoint = this.gameObject.transform.GetChild(0);
-            
-        Shoot s = new Shoot();
-        NetworkManager.instance.SendAction(s); 
             
         Instantiate(bulletType,bulletSpawnPoint.position ,bulletSpawnPoint.rotation);
         isInCooldown = true;
