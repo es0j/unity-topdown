@@ -17,13 +17,8 @@ public class WeaponController : MonoBehaviour
             return false;
         }
         Transform bulletSpawnPoint = this.gameObject.transform.GetChild(0);
-            
-        Shoot s = new Shoot();
-        NetworkManager.instance.SendAction(s); 
-            
         Instantiate(bulletType,bulletSpawnPoint.position ,bulletSpawnPoint.rotation);
         isInCooldown = true;
-            
         StartCoroutine(StartCountdown(cooldownTime));
 
         return true;

@@ -2,7 +2,7 @@
 from enum import IntEnum, auto
 from json import load as json_load
 from pydantic import BaseModel, Field
-from vec import Vector2
+from pygame.math import Vector2
 from typing import Literal, Union
 
 class MsgType(IntEnum):
@@ -38,13 +38,12 @@ class MsgPlayerInfo(BaseModel):
     id: int
     x: float
     y: float
+    rotation: float
     
 
 class MsgPlayerEnter(BaseModel):
     type: Literal[MsgType.PlayerEnter] = MsgType.PlayerEnter
     id: int
-    x: float
-    y: float
     gid: int
 
 class MsgPlayerLeave(BaseModel):

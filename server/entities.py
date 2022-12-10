@@ -4,60 +4,53 @@ import time
 import sys
 import random
 
+from states import game_state
+
 from enum import IntEnum, auto
 from json import load as json_load
 from pydantic import BaseModel, Field
-from vec import Vector2
+
+from pygame.math import Vector2
 from typing import Literal, Union
 
 from packets import *
+from libmath import position2tile
+
 
 ZOMBIE = 1
 OPERATOR = 0
 
-#only players
-clients = {}
 
-#eneryEntity
-entities ={}
-
-#only enemies
-enemies ={}
-
-npcs ={}
-
-
-packetsQueue=[]
-
-def position2tile(pos):
-    x, y = pos
-    if x < 0:
-        x -= 1
-    if y < 0:
-        y -= 1
-    return tuple((int(x), int(y)))
-
-
-class Entity:
-    def __init__(self,id,gid):
+class GameObject:
+    def __init__(self) -> None:
         self.position = Vector2(0,0)
+        game_state.gameObjects.append(self)
+        
+    def __del__(self):
+        game_state.gameObjects.remove(self)
+
+class Entity(GameObject):
+    def __init__(self,id,gid):
+        super().__init__()
+        self.rotation = 0
         self.health = 100
         self.damage = 10
         self.id = id
         self.gid = gid
-        entities[self.id] = self
+        game_state.entities[self.id] = self
 
         
     async def init(self):
-        #tell everyone that you are here
-        await self.send_to_all(MsgPlayerEnter(id=self.id, x=self.position.x, y=self.position.y,gid=self.gid),ignoreClients=[self])
+        #tell everyone that you are here and send them your position
+        await self.send_to_all(MsgPlayerEnter(id=self.id,gid=self.gid),ignoreClients=[self])
+        await self.send_to_all(self.getInfoUpdatePacket() ,ignoreClients=[self])
 
 
     async def remove(self):
         await self.send_to_all(MsgPlayerLeave(id=self.id))
 
     async def send_to_all(self, msg,ignoreClients=[]):
-        for c in clients.values():
+        for c in game_state.clients.values():
             if c in ignoreClients:
                 continue
             await c.send_json(msg.json())
@@ -68,28 +61,31 @@ class Entity:
         await self.writer.drain()
 
     def addPacketToQueue(self,p):
-        packetsQueue.append(p)
+        game_state.packetsQueue.append(p)
 
     def server_send_position(self):
-        self.addPacketToQueue(MsgPlayerInfo(id=self.id, x=self.position.x, y=self.position.y))
+        self.addPacketToQueue(self.getInfoUpdatePacket())
 
+    def getInfoUpdatePacket(self):
+        return MsgPlayerInfo(id=self.id, x=self.position.x, y=self.position.y,rotation=self.rotation)
+    
     def update(self):
         return
 
 class Monster(Entity):
     def __init__(self,id):
         super().__init__(id,ZOMBIE)
-        enemies[self.id]=self
+        game_state.enemies[self.id]=self
 
     def update(self):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
         self.server_send_position()
         
-        
+
 class NPC(Entity):
     def __init__(self,id):
         super().__init__(id,OPERATOR)
-        npcs[self.id]=self
+        game_state.npcs[self.id]=self
 
     def update(self):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
@@ -97,58 +93,3 @@ class NPC(Entity):
         self.addPacketToQueue(MsgShoot(id=self.id))
 
         
-
-
-
-class Client(Entity):
-    def __init__(self, reader, writer,id,gid):
-        Entity.__init__(self,id,gid)
-        self.error = False
-        self.reader = reader
-        self.writer = writer
-        clients[self.id] = self
-
-
-        
-    async def init(self):
-        await self.send_json(MsgServerHello(name="Server 1.0", id=self.id).json())
-        await super().init()
-
-        #replicate every other entity
-        for e in entities.values():
-            if e == self:
-                continue
-            await self.send_json(MsgPlayerEnter(id=e.id, x=e.position.x, y=e.position.y,gid=e.gid).json()) 
-    
-
-    async def send_error(self, msg, disconnect=True):
-        await self.send_json(MsgError(msg=msg).json())
-        self.error = disconnect
-
-    async def loop(self):
-        while not self.error:
-            data = await self.reader.readline()
-            print("data recived: ",data)
-            if not data:
-                break            
-            message = Msg.parse_raw(data, content_type="application/json").__root__
-            if message.type == MsgType.PlayerInfo:
-                await self.handle_player_info(message)
-            if message.type == MsgType.Shoot:
-                await self.handle_shoot(message)
-
-    async def handle_player_info(self, msg):
-        if msg.id != self.id:
-            await self.send_error("Wrong player ID")
-            return
-
-        self.position = Vector2(msg.x, msg.y)
-        #print("replicating movement")
-        await self.send_to_all(MsgPlayerInfo(id=self.id, x=msg.x, y=msg.y),ignoreClients=[self])
-        
-
-    async def handle_shoot(self, msg):
-        if msg.id != self.id:
-            await self.send_error("Wrong player ID")
-            return
-        await self.send_to_all(MsgShoot(id=self.id),ignoreClients=[self])

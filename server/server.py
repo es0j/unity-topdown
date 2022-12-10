@@ -7,6 +7,7 @@ import random
 
 from packets import *
 from entities import *
+from client import *
 
 from enum import IntEnum, auto
 from json import load as json_load
@@ -14,7 +15,7 @@ from pydantic import BaseModel, Field
 from vec import Vector2
 from typing import Literal, Union
 
-
+from states import game_state
 
 
 
@@ -41,11 +42,11 @@ class server_class():
         await self.spawnNPCS()
         while 1:
 
-            for e in entities.values():
+            for e in game_state.entities.values():
                 e.update()
-            for p in packetsQueue:
+            for p in game_state.packetsQueue:
                 await self.send_to_all(p)
-            packetsQueue.clear()
+            game_state.packetsQueue.clear()
             await asyncio.sleep(4)
             
             
@@ -62,7 +63,7 @@ class server_class():
         await monster.init()
 
     async def send_to_all(self, msg,ignore=[]):
-        for client in clients.values():
+        for client in game_state.clients.values():
             await client.send_json(msg.json())
 
     async def main(self):
@@ -105,8 +106,8 @@ class server_class():
                 await client.remove()
             except Exception as e:
                 pass
-            del clients[client.id]
-            del entities[client.id]
+            del game_state.clients[client.id]
+            del game_state.entities[client.id]
             writer.close()
 
 

@@ -51,18 +51,14 @@ public class PlayerInfo : Packet
         type = PcktType.PlayerInfo;
     }
     //public Position position;
-    public float x, y;
-    public int gid=0;
+    public float x, y, rotation;
     public void loadFromTransform(Transform t)
     {
         x = t.position.x;
         y = t.position.y;
-        //rot_z = t.rotation.z;
+        rotation = t.rotation.z;
     }
 }
-
-
-
 
 
 public class PlayerEnter : Packet
@@ -71,8 +67,6 @@ public class PlayerEnter : Packet
     {
         type = PcktType.PlayerEnter;
     }
-    //public Position position;
-    public float x, y;
     public int gid;
 }
 

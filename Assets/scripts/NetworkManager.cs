@@ -139,10 +139,8 @@ public class NetworkManager : MonoBehaviour
             //deals with playerEntry
             foreach (PlayerEnter p in pEnterList)
             {
-                Debug.Log("Spawning at: "+p.y+"+"+p.x);
-                Vector3 newPosition = new Vector3(p.x,p.y);
-        
-                GameObject newObject = Instantiate(entitiesTypes[p.gid],newPosition,Quaternion.identity);
+                Debug.Log("Spawning object of GID: " + p.gid);
+                GameObject newObject = Instantiate(entitiesTypes[p.gid]);
                 netObjects[p.id] = new NetObject(newObject);
             }
             pEnterList.Clear();
