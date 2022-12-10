@@ -47,6 +47,7 @@ class server_class():
             for p in game_state.packetsQueue:
                 await self.send_to_all(p)
             game_state.packetsQueue.clear()
+            game_state.print()
             await asyncio.sleep(4)
             
             
@@ -96,7 +97,7 @@ class server_class():
             await client.loop()
 
             print(f"Closed: {client.id}")
-            
+            game_state.Destroy(client)           
   
         except Exception as e:
             print(e)
@@ -106,8 +107,7 @@ class server_class():
                 await client.remove()
             except Exception as e:
                 pass
-            del game_state.clients[client.id]
-            del game_state.entities[client.id]
+            game_state.Destroy(client) 
             writer.close()
 
 

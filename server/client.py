@@ -10,8 +10,7 @@ class Client(Entity):
         self.reader = reader
         self.writer = writer
         game_state.clients[self.id] = self
-
-
+        
         
     async def init(self):
         await self.send_json(MsgServerHello(name="Server 1.0", id=self.id).json())

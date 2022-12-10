@@ -161,10 +161,16 @@ public class NetworkManager : MonoBehaviour
             }
             
             mutexReader.ReleaseMutex();
+
+            if (!isRunning)
+            {
+                Destroy(gameObject);
+            }
         }
         catch (Exception e)
         {
             Debug.LogError("Update: " + e);
+            mutexReader.ReleaseMutex();
             Destroy(gameObject);
         }
 
@@ -192,7 +198,9 @@ public class NetworkManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("ExceptionReader: " + e);
-            Destroy(gameObject);
+            mutexReader.ReleaseMutex();
+            
+            
             
         }
     }
@@ -235,7 +243,8 @@ public class NetworkManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("ExceptionWriter: "+ e);
-            Destroy(gameObject);
+            mutexWriter.ReleaseMutex();
+            isRunning = false;
         }
     }
 
@@ -255,7 +264,13 @@ public class NetworkManager : MonoBehaviour
 
     public void OnDestroy()
     {
-        EndConnection();
+        isRunning = false;
+        s.Close();
+        
+        
+        rt.Join();
+        wt.Join();
+        
     }
 
 
@@ -283,26 +298,6 @@ public class NetworkManager : MonoBehaviour
         }
         
         
-        
-    }
-
-    private void EndConnection()
-    {
-        isRunning = false;
-        sr.Close();
-        s.Close();
-        try
-        {
-            mutexReader.ReleaseMutex();
-            mutexWriter.ReleaseMutex();
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning("mutex cant be closed"+e);
-        }
-        
-        rt.Join();
-        wt.Join();
         
     }
 }

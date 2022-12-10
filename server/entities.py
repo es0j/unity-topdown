@@ -25,9 +25,6 @@ class GameObject:
     def __init__(self) -> None:
         self.position = Vector2(0,0)
         game_state.gameObjects.append(self)
-        
-    def __del__(self):
-        game_state.gameObjects.remove(self)
 
 class Entity(GameObject):
     def __init__(self,id,gid):
@@ -38,7 +35,6 @@ class Entity(GameObject):
         self.id = id
         self.gid = gid
         game_state.entities[self.id] = self
-
         
     async def init(self):
         #tell everyone that you are here and send them your position
@@ -75,17 +71,19 @@ class Entity(GameObject):
 class Monster(Entity):
     def __init__(self,id):
         super().__init__(id,ZOMBIE)
-        game_state.enemies[self.id]=self
-
+        game_state.enemies[self.id]=self        
+        
     def update(self):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
         self.server_send_position()
         
+    
 
 class NPC(Entity):
     def __init__(self,id):
         super().__init__(id,OPERATOR)
         game_state.npcs[self.id]=self
+           
 
     def update(self):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
