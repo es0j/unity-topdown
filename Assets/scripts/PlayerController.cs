@@ -44,6 +44,10 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!HasAuthority)
+        {
+            return;
+        }
         CurrentSpeed = Vector2.zero;
         
         if (Input.GetKey(KeyCode.W))

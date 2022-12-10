@@ -7,15 +7,16 @@ public class PlayerPacketHandler : PacketHandler
     private PlayerController pController;
     void Start(){
         pController = GetComponent<PlayerController>();
-    } 
+    }
     
     // Start is called before the first frame update
-    public virtual void HandleShoot(Shoot p)
+    public override void HandleShoot(Shoot p)
     {
+        Debug.Log("Replicating weapon visuals");
         pController.currWeaponController.ShootVisual();
     }
     
-    public virtual void HandlePStats(PlayerStats p)
+    public override void HandlePStats(PlayerStats p)
     {
 
     }

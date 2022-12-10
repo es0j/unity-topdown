@@ -13,9 +13,9 @@ from typing import Literal, Union
 from packets import *
 
 ZOMBIE = 1
-PLAYER = 0
+OPERATOR = 0
 
-#onyl players
+#only players
 clients = {}
 
 #eneryEntity
@@ -24,6 +24,10 @@ entities ={}
 #only enemies
 enemies ={}
 
+npcs ={}
+
+
+packetsQueue=[]
 
 def position2tile(pos):
     x, y = pos
@@ -63,6 +67,14 @@ class Entity:
         self.writer.write((json + "\n").encode())
         await self.writer.drain()
 
+    def addPacketToQueue(self,p):
+        packetsQueue.append(p)
+
+    def server_send_position(self):
+        self.addPacketToQueue(MsgPlayerInfo(id=self.id, x=self.position.x, y=self.position.y))
+
+    def update(self):
+        return
 
 class Monster(Entity):
     def __init__(self,id):
@@ -71,7 +83,21 @@ class Monster(Entity):
 
     def update(self):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
+        self.server_send_position()
         
+        
+class NPC(Entity):
+    def __init__(self,id):
+        super().__init__(id,OPERATOR)
+        npcs[self.id]=self
+
+    def update(self):
+        self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
+        self.server_send_position()
+        self.addPacketToQueue(MsgShoot(id=self.id))
+
+        
+
 
 
 class Client(Entity):

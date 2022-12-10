@@ -38,21 +38,24 @@ class server_class():
 
     async def server_mainloop(self):
         await self.spawnMonster()
+        await self.spawnNPCS()
         while 1:
 
-            #print("running game logic")
-            #print(clients)
+            for e in entities.values():
+                e.update()
+            for p in packetsQueue:
+                await self.send_to_all(p)
+            packetsQueue.clear()
             await asyncio.sleep(4)
-            #await self.spawnMonster()
             
-            for m in enemies.values():
-                m.update()
-                await self.send_to_all(MsgPlayerInfo(id=m.id, x=m.position.x, y=m.position.y))
-
             
 
             
 
+            
+    async def spawnNPCS(self):
+        npc = NPC(next(self.id_counter))
+        await npc.init()
 
     async def spawnMonster(self):
         monster = Monster(next(self.id_counter))

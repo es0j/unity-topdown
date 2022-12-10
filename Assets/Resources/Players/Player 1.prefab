@@ -12,8 +12,7 @@ GameObject:
   - component: {fileID: 734652169821059168}
   - component: {fileID: 734652169821059103}
   - component: {fileID: 734652169821059102}
-  - component: {fileID: 734652169821059170}
-  - component: {fileID: 2619090120047360278}
+  - component: {fileID: 6461211617792791226}
   m_Layer: 0
   m_Name: Player 1
   m_TagString: Untagged
@@ -116,28 +115,17 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 734652169821059101}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4be0b0edd9167994c8b6c1c8bdb82f44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HasAuthority: 0
   weaponList:
-  - {fileID: 0}
-  currWeapon: {fileID: 0}
+  - {fileID: 5784247304803218542, guid: 09d9e46600fadb742b701fa330b7aa7b, type: 3}
+  currWeaponController: {fileID: 0}
   speedMultiplier: 10
---- !u!114 &734652169821059170
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 734652169821059101}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5cfd80d2a547c9346a13c9808fc42bae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &2619090120047360278
+--- !u!114 &6461211617792791226
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -146,6 +134,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 734652169821059101}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4fa748d53db63554baf5909953296f60, type: 3}
+  m_Script: {fileID: 11500000, guid: 63082a2a88c32274da5e88c790f6bd84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

@@ -30,6 +30,7 @@ public class NetObject
         {
             foreach (string pkt in netPackets[(int)pType])
             {
+                Debug.Log("delivbering pkt"+pType);
                 reference.GetComponent<PacketHandler>().HandlePacket(pType,pkt);        
             }
             netPackets[(int)pType].Clear();
@@ -64,7 +65,8 @@ public class NetworkManager : MonoBehaviour
 
     private bool isRunning=true;
     
-    private static Mutex mut = new Mutex();
+    private static Mutex mutexReader = new Mutex();
+    private static Mutex mutexWriter = new Mutex();
     
     //holds reference to replicated netObjects
     private Dictionary<int, NetObject> netObjects = new Dictionary<int, NetObject>();
@@ -132,7 +134,7 @@ public class NetworkManager : MonoBehaviour
     {
         try
         {
-            mut.WaitOne();
+            mutexReader.WaitOne();
 
             //deals with playerEntry
             foreach (PlayerEnter p in pEnterList)
@@ -160,12 +162,11 @@ public class NetworkManager : MonoBehaviour
                 n.DeliverPackets();
             }
             
-            mut.ReleaseMutex();
+            mutexReader.ReleaseMutex();
         }
         catch (Exception e)
         {
             Debug.LogError("Update: " + e);
-            mut.ReleaseMutex();
             Destroy(gameObject);
         }
 
@@ -185,16 +186,16 @@ public class NetworkManager : MonoBehaviour
                     break;
                 }
 
-                mut.WaitOne();
+                mutexReader.WaitOne();
                 ParsePacket(msg);
-                mut.ReleaseMutex();
+                mutexReader.ReleaseMutex();
             }
         }
         catch (Exception e)
         {
             Debug.LogError("ExceptionReader: " + e);
-            mut.ReleaseMutex();
-            s.Close();
+            Destroy(gameObject);
+            
         }
     }
     
@@ -207,7 +208,7 @@ public class NetworkManager : MonoBehaviour
             while (isRunning)
             {
 
-                mut.WaitOne();
+                mutexWriter.WaitOne();
 
                 foreach (Packet p in ActionsQueue)
                 {
@@ -227,7 +228,7 @@ public class NetworkManager : MonoBehaviour
                 playerState = null;
                 
 
-                mut.ReleaseMutex();
+                mutexWriter.ReleaseMutex();
 
                 sw.Flush();
                 Thread.Sleep(1000);
@@ -236,34 +237,27 @@ public class NetworkManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("ExceptionWriter: "+ e);
-            mut.ReleaseMutex();
-            s.Close();
+            Destroy(gameObject);
         }
     }
 
     public void SendAction(Packet packet)
     {
-        mut.WaitOne();
+        mutexWriter.WaitOne();
         ActionsQueue.Enqueue(packet);
-        mut.ReleaseMutex();
+        mutexWriter.ReleaseMutex();
     }
     
     public void SendState(PlayerInfo p)
     {
-        mut.WaitOne();
+        mutexWriter.WaitOne();
         playerState = p;
-        mut.ReleaseMutex();
+        mutexWriter.ReleaseMutex();
     }
 
     public void OnDestroy()
     {
-       
-        isRunning = false;
-        mut.ReleaseMutex();
-        s.Close();
-        rt.Join();
-        wt.Join();
-        
+        EndConnection();
     }
 
 
@@ -291,6 +285,26 @@ public class NetworkManager : MonoBehaviour
         }
         
         
+        
+    }
+
+    private void EndConnection()
+    {
+        isRunning = false;
+        sr.Close();
+        s.Close();
+        try
+        {
+            mutexReader.ReleaseMutex();
+            mutexWriter.ReleaseMutex();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("mutex cant be closed"+e);
+        }
+        
+        rt.Join();
+        wt.Join();
         
     }
 }
