@@ -101,7 +101,22 @@ public class PlayerController : MonoBehaviour
     void ReplicateShoot(){
         if(HasAuthority){
             Shoot s = new Shoot();
+
+            Transform weaponMuzzleTransform = currWeaponController.GetWeaponEndpoint();
+            
+            s.start_x = weaponMuzzleTransform.position.x;
+            s.start_y = weaponMuzzleTransform.position.y;
+            Vector3 end = weaponMuzzleTransform.position + (weaponMuzzleTransform.right * 100.0f);
+            
+            s.end_x = end.x;
+            s.end_y = end.y;
+
+            Vector3 startDraw = new Vector3(s.start_x, s.start_y, 20);
+            Vector3 endDraw = new Vector3(end.x, end.y, 20);
+            
+            Debug.DrawLine(startDraw, endDraw, Color.red, 200.5f,false);
             NetworkManager.instance.SendAction(s); 
+            
         }
     }
 }

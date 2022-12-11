@@ -81,6 +81,7 @@ public class PlayerLeave : Packet
 
 public class Shoot : Packet
 {
+    public float start_x, start_y, end_x, end_y;
     public Shoot()
     {
         type = PcktType.Shoot;

@@ -64,7 +64,10 @@ class MsgAttack(BaseModel):
 class MsgShoot(BaseModel):
     type: Literal[MsgType.Shoot] = MsgType.Shoot
     id: int
-
+    start_x: float
+    start_y: float
+    end_x: float
+    end_y: float
 
 
 class Msg(BaseModel):

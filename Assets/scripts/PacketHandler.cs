@@ -11,6 +11,12 @@ using Newtonsoft.Json;
 public class PacketHandler : MonoBehaviour
 {
 
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(this.transform.position, 1.2f);
+    }
+    
     public void HandlePacket(PcktType pType, string newPacket)
     {
         switch (pType)

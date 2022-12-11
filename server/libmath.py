@@ -3,6 +3,10 @@ from pygame.math import Vector2
 import math
 import sys
 
+
+
+
+
 def position2tile(pos : Vector2):
     x, y = pos.x,pos.y
     if x < 0:
@@ -30,7 +34,7 @@ def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDis
     vRayLength1D = Vector2(0.0, 0.0)
     vStep = Vector2(0, 0)
     
-    colliderTiles = [position2tile(i.position) for i in gameObjectList]
+    
 
     #set up initial conditions 
     if (vRayDir.x < 0):
@@ -59,17 +63,20 @@ def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDis
             fDistance = vRayLength1D.y
             vRayLength1D.y += vRayUnitStepSize.y
 
-        #check if element is present on list
-        if (vMapCheck in colliderTiles ):
-            # Calculate intersection location and return the gameObject collided with
-            return  gameObjectList[colliderTiles.index(vMapCheck)],vRayStart + vRayDir * fDistance
+        checkedPoint = vRayStart + vRayDir * fDistance
+        
+        for e in gameObjectList:
+             #check if element is present on list
+            if (e.checkCollision(checkedPoint)):
+                # Calculate intersection location and return the gameObject collided with
+                return  e,checkedPoint
             
     return None,Vector2(0,0)
 
 
 
 if __name__=="__main__":
-    from entities import GameObject
+    
     g1 = GameObject()
     print(type(g1.position))
     g1.position.x=50

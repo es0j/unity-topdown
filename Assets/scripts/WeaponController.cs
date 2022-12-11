@@ -35,6 +35,28 @@ public class WeaponController : MonoBehaviour
         
     }
 
+    void OnDrawGizmos()
+    {
+        Transform t = GetWeaponEndpoint();
+        //Gizmos.color = Color.red;
+        
+        
+        Transform weaponMuzzleTransform = GetWeaponEndpoint();
+            
+
+        Vector3 end = weaponMuzzleTransform.position + (weaponMuzzleTransform.right * 100.0f);
+        
+        
+        Gizmos.DrawLine(weaponMuzzleTransform.position,end);
+        //Gizmos.DrawSphere(this.transform.position, 1.5f);
+    }
+
+    
+    public Transform GetWeaponEndpoint()
+    {
+        return gameObject.transform.Find("SpawnPoint");
+    }
+
     public IEnumerator StartCountdown(float countdownValue)
     {
         yield return new WaitForSeconds(countdownValue);

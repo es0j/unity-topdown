@@ -141,7 +141,7 @@ public class NetworkManager : MonoBehaviour
             {
                 Debug.Log("Spawning object of GID: " + p.gid);
                 GameObject newObject = Instantiate(entitiesTypes[p.gid]);
-                netObjects[p.id] = new NetObject(newObject);
+                netObjects[p.id].reference = newObject;
             }
             pEnterList.Clear();
 
@@ -290,8 +290,10 @@ public class NetworkManager : MonoBehaviour
                 break;
             case PcktType.PlayerLeave:
                 PlayerLeave pLeave = JsonConvert.DeserializeObject<PlayerLeave>(msg);
+                pLeaveList.Enqueue(pLeave);
                 break;
             default:
+                netObjects[p.id] = new NetObject(null);
                 netObjects[p.id].EnqueuePckt(p.type,msg);
                 break;
                 

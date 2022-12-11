@@ -25,6 +25,14 @@ class GameObject:
     def __init__(self) -> None:
         self.position = Vector2(0,0)
         game_state.gameObjects.append(self)
+        self.radius = 1.2
+        
+    def checkCollision(self, pos):
+        if (self.position - pos).length() < self.radius:
+            print("returned true for pos ",pos)
+            return True
+        return False
+        
 
 class Entity(GameObject):
     def __init__(self,id,gid):
@@ -55,6 +63,9 @@ class Entity(GameObject):
         print("sent: ",json)
         self.writer.write((json + "\n").encode())
         await self.writer.drain()
+        
+    async def send_to_client(self, msg):
+        await self.send_json(msg.json())
 
     def addPacketToQueue(self,p):
         game_state.packetsQueue.append(p)
@@ -88,6 +99,10 @@ class NPC(Entity):
     def update(self):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
         self.server_send_position()
-        self.addPacketToQueue(MsgShoot(id=self.id))
+        self.addPacketToQueue(MsgShoot(id=self.id,
+                                       start_x=self.position.x,
+                                       start_y=self.position.y,
+                                       end_x=self.position.x+100,
+                                       end_y=self.position.y))
 
         

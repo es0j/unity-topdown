@@ -20,7 +20,8 @@ class Client(Entity):
         for e in game_state.entities.values():
             if e == self:
                 continue
-            await self.send_json(MsgPlayerEnter(id=e.id, x=e.position.x, y=e.position.y,gid=e.gid).json()) 
+            await self.send_to_client(MsgPlayerEnter(id=e.id,gid=e.gid)) 
+            await self.send_to_client(e.getInfoUpdatePacket()) 
     
 
     async def send_error(self, msg, disconnect=True):
@@ -30,7 +31,7 @@ class Client(Entity):
     async def loop(self):
         while not self.error:
             data = await self.reader.readline()
-            print("data recived: ",data)
+            #print("data recived: ",data)
             if not data:
                 break            
             message = Msg.parse_raw(data, content_type="application/json").__root__
@@ -56,7 +57,26 @@ class Client(Entity):
         if msg.id != self.id:
             await self.send_error("Wrong player ID")
             return
-        await self.send_to_all(MsgShoot(id=self.id),ignoreClients=[self])
+        await self.send_to_all(msg,ignoreClients=[self])
         #resolve collision
-        do_raycast(self.position, Vector2(self.position.x+100,self.position.y),[],100 )
         
+        collidersGO = game_state.enemies.values()
+        
+        
+        
+        startPos = Vector2(msg.start_x,msg.start_y)
+        endPos = Vector2(msg.end_x,msg.end_y)
+        
+        print(f"handle collision {startPos} -> {endPos}",[e.position for e in collidersGO])
+        
+        collided,position= do_raycast(startPos, endPos,collidersGO,100 )
+        print(collided,position)
+        if collided!=None:
+            await self.ShootEnemy(collided)
+            
+    async def ShootEnemy(self,target):
+        target.health-=10
+        if(target.health<=0):
+            game_state.Destroy(target)
+            await self.send_to_all(MsgPlayerLeave(id=target.id))
+            
