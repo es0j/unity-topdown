@@ -30,8 +30,16 @@ public class NetObject
         {
             foreach (string pkt in netPackets[(int)pType])
             {
-                Debug.Log("delivbering pkt"+pType);
-                reference.GetComponent<PacketHandler>().HandlePacket(pType,pkt);        
+                Debug.Log("delivbering pkt"+pType+reference);
+                PacketHandler pHandler = reference.GetComponent<PacketHandler>();
+                if (pHandler)
+                {
+                    pHandler.HandlePacket(pType,pkt);      
+                }
+                else
+                {
+                    Debug.LogWarning("pHandler dont exist");
+                }
             }
             netPackets[(int)pType].Clear();
         }
@@ -78,8 +86,9 @@ public class NetworkManager : MonoBehaviour
     private Queue<PlayerLeave> pLeaveList = new Queue<PlayerLeave>();
 
     private PlayerInfo playerState = new PlayerInfo();
-    private Queue<Packet> ActionsQueue = new Queue<Packet>(); 
+    private Queue<Packet> ActionsQueue = new Queue<Packet>();
 
+    public GameObject player;
     #region Singleton
     public static NetworkManager instance=null;
     void Awake()
@@ -121,7 +130,12 @@ public class NetworkManager : MonoBehaviour
         
         string msg = sr.ReadLine();
         ServerHello hello = JsonConvert.DeserializeObject<ServerHello>(msg);
+        
+        //register player as netid
         netId = hello.id;
+        Debug.Log("Local ID: " +netId);
+        netObjects[netId] = new NetObject(null);
+        netObjects[netId].reference = player;
         
 
         //start threads
@@ -155,9 +169,10 @@ public class NetworkManager : MonoBehaviour
             pLeaveList.Clear();
             
             //delivers packets to respective components
-            foreach (NetObject n in netObjects.Values)
+            foreach (int k in netObjects.Keys)
             {
-                n.DeliverPackets();
+                //Debug.LogWarning("DeliverPackets to id :"+k);
+                netObjects[k].DeliverPackets();
             }
             
             mutexReader.ReleaseMutex();
@@ -293,7 +308,10 @@ public class NetworkManager : MonoBehaviour
                 pLeaveList.Enqueue(pLeave);
                 break;
             default:
-                netObjects[p.id] = new NetObject(null);
+                if (!netObjects.ContainsKey(p.id))
+                {
+                    netObjects[p.id] = new NetObject(null);     
+                }
                 netObjects[p.id].EnqueuePckt(p.type,msg);
                 break;
                 

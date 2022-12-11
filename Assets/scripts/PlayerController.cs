@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+[RequireComponent(typeof(PlayerPacketHandler))]
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
@@ -12,16 +13,12 @@ public class PlayerController : MonoBehaviour
     public float speedMultiplier=10f;
     private Rigidbody2D rb;
     private Vector2 CurrentSpeed;
+    
     // Start is called before the first frame update
     void Start()
     {
         weaponList = Resources.LoadAll<GameObject>("Weapons");
         rb = GetComponent<Rigidbody2D>();
-        
-        if(!HasAuthority){
-            gameObject.AddComponent<PlayerPacketHandler>();
-        }
-        
         SwitchToWeapon(0);
 
     }

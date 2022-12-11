@@ -18,7 +18,8 @@ public class PlayerPacketHandler : PacketHandler
     
     public override void HandlePStats(PlayerStats p)
     {
-
+        Debug.Log("Replicating weapon visuals");
+        UI_Manager.instance.UpdateLifeDisplay(p.health);
     }
 
 }

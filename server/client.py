@@ -22,7 +22,7 @@ class Client(Entity):
                 continue
             await self.send_to_client(MsgPlayerEnter(id=e.id,gid=e.gid)) 
             await self.send_to_client(e.getInfoUpdatePacket()) 
-    
+        await self.send_to_client(self.getStatUpdatePacket()) 
 
     async def send_error(self, msg, disconnect=True):
         await self.send_json(MsgError(msg=msg).json())

@@ -76,6 +76,9 @@ class Entity(GameObject):
     def getInfoUpdatePacket(self):
         return MsgPlayerInfo(id=self.id, x=self.position.x, y=self.position.y,rotation=self.rotation)
     
+    def getStatUpdatePacket(self):
+        return MsgPlayerStats(id=self.id, health=self.health)
+    
     def update(self):
         return
 

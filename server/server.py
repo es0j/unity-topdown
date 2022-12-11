@@ -42,8 +42,8 @@ class server_class():
         await self.spawnNPCS()
         while 1:
 
-            #for e in game_state.entities.values():
-                #e.update()
+            for e in game_state.entities.values():
+                e.update()
             for p in game_state.packetsQueue:
                 await self.send_to_all(p)
             game_state.packetsQueue.clear()
