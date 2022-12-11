@@ -1,7 +1,7 @@
-from states import game_state
+from .states import game_state
 
-from entities import *
-from libmath import do_raycast
+from .entities import *
+from .libmath import do_raycast
 
 class Client(Entity):
     def __init__(self, reader, writer,id,gid):
@@ -67,10 +67,10 @@ class Client(Entity):
         startPos = Vector2(msg.start_x,msg.start_y)
         endPos = Vector2(msg.end_x,msg.end_y)
         
-        print(f"handle collision {startPos} -> {endPos}",[e.position for e in collidersGO])
+        #print(f"handle collision {startPos} -> {endPos}",[e.position for e in collidersGO])
         
         collided,position= do_raycast(startPos, endPos,collidersGO,100 )
-        print(collided,position)
+        #print(collided,position)
         if collided!=None:
             await self.ShootEnemy(collided)
             

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(PlayerController))]
 public class PlayerPacketHandler : PacketHandler
 {
     private PlayerController pController;
@@ -13,7 +14,11 @@ public class PlayerPacketHandler : PacketHandler
     public override void HandleShoot(Shoot p)
     {
         Debug.Log("Replicating weapon visuals");
-        pController.currWeaponController.ShootVisual();
+        if (pController.currWeaponController)
+        {
+            pController.currWeaponController.ShootVisual();    
+        }
+        
     }
     
     public override void HandlePStats(PlayerStats p)

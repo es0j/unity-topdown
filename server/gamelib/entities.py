@@ -1,10 +1,6 @@
-import asyncio
-import socket
-import time
-import sys
 import random
 
-from states import game_state
+
 
 from enum import IntEnum, auto
 from json import load as json_load
@@ -13,9 +9,9 @@ from pydantic import BaseModel, Field
 from pygame.math import Vector2
 from typing import Literal, Union
 
-from packets import *
-from libmath import position2tile
-
+from .packets import *
+from .libmath import *
+from .states import game_state
 
 ZOMBIE = 1
 OPERATOR = 0
@@ -29,7 +25,7 @@ class GameObject:
         
     def checkCollision(self, pos):
         if (self.position - pos).length() < self.radius:
-            print("returned true for pos ",pos)
+            #print("returned true for pos ",pos)
             return True
         return False
         
@@ -40,14 +36,18 @@ class Entity(GameObject):
         self.rotation = 0
         self.health = 100
         self.damage = 10
+        self.speed = 0.5
         self.id = id
         self.gid = gid
         game_state.entities[self.id] = self
         
-    async def init(self):
+    async def init(self,vPosition=Vector2(0,0)):
+        self.position = vPosition
+        self.start()
         #tell everyone that you are here and send them your position
         await self.send_to_all(MsgPlayerEnter(id=self.id,gid=self.gid),ignoreClients=[self])
         await self.send_to_all(self.getInfoUpdatePacket() ,ignoreClients=[self])
+
 
 
     async def remove(self):
@@ -60,7 +60,7 @@ class Entity(GameObject):
             await c.send_json(msg.json())
 
     async def send_json(self, json):
-        print("sent: ",json)
+        #print("sent: ",json)
         self.writer.write((json + "\n").encode())
         await self.writer.drain()
         
@@ -79,19 +79,43 @@ class Entity(GameObject):
     def getStatUpdatePacket(self):
         return MsgPlayerStats(id=self.id, health=self.health)
     
-    def update(self):
+    async def start(self):
         return
+    
+    def update(self,dtime=0):
+        return
+    
+    def moveTo(self,target : Vector2, dtime):
+        direction = target - self.position
+        
+        maxDirection = direction.normalize() * self.speed *dtime
+        if (direction.length() < maxDirection.length()):
+            self.position = target
+        else:
+            self.position = self.position + maxDirection
 
 class Monster(Entity):
     def __init__(self,id):
         super().__init__(id,ZOMBIE)
-        game_state.enemies[self.id]=self        
+        game_state.enemies[self.id]=self       
+        self.target=None
+        self.path=[]
         
-    def update(self):
-        self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
-        self.server_send_position()
         
+    def start(self):
+        return
     
+    def update(self,dtime=0):
+        return
+    
+    def getClosestClient(self):
+        distances = [ i.position.length() for i in game_state.clients.values()]
+        if len(distances) >0:
+            mindis = min(distances)
+            return list(game_state.clients.values())[distances.index(mindis)] 
+        return None
+            
+
 
 class NPC(Entity):
     def __init__(self,id):
@@ -99,7 +123,7 @@ class NPC(Entity):
         game_state.npcs[self.id]=self
            
 
-    def update(self):
+    def update(self,dtime=0):
         self.position=Vector2(  self.position.x + random.random() , self.position.y + random.random())
         self.server_send_position()
         self.addPacketToQueue(MsgShoot(id=self.id,

@@ -9,7 +9,7 @@ using UnityEngine.Tilemaps;
 public class SaveTile : MonoBehaviour
 {
     // Start is called before the first frame update
-    public void Save()
+    public void Start()
     {
         Debug.Log("saving");
         List<TilemapData> data = new List<TilemapData>();
@@ -45,7 +45,7 @@ public class SaveTile : MonoBehaviour
         string toSave = JsonConvert.SerializeObject(data);
         var hash = new Hash128();
         hash.Append(toSave);
-        StreamWriter writer = new StreamWriter(hash.ToString()+".txt", false);
+        StreamWriter writer = new StreamWriter("server/maps/"+hash.ToString()+".json", false);
         writer.WriteLine(toSave);
         writer.Close();
         //FileHandler.SaveToJSON<TilemapData>(data, filename);

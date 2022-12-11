@@ -1,11 +1,10 @@
 
 from pygame.math import Vector2
 import math
-import sys
 
-
-
-
+from pathfinding.core.diagonal_movement import DiagonalMovement
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder
 
 def position2tile(pos : Vector2):
     x, y = pos.x,pos.y
@@ -13,7 +12,31 @@ def position2tile(pos : Vector2):
         x -= 1
     if y < 0:
         y -= 1
-    return tuple((int(x), int(y)))
+    return Vector2(int(x), int(y))
+
+
+def SolvePathFinding(matrix,vstart : Vector2, vend : Vector2):
+    
+    
+    grid = Grid(matrix=matrix)
+    last_matrix_index = len(matrix)-1
+
+
+    start = grid.node(int(vstart.x), int(vstart.y))
+    end = grid.node(int(vend.x), int(vend.y))
+
+
+    finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
+    path, runs = finder.find_path(start, end, grid)
+
+    #print('operations:', runs, 'path length:', len(path))
+    #print(grid.grid_str(path=path, start=start, end=end))
+    #print(path)
+    
+    return [Vector2(i[0],i[1]) for i in path]
+
+
+
 
 #based on https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_RayCastDDA.cpp
 #Do a DDA raycast
@@ -75,14 +98,3 @@ def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDis
 
 
 
-if __name__=="__main__":
-    
-    g1 = GameObject()
-    print(type(g1.position))
-    g1.position.x=50
-    g1.position.y=0.2
-    print(do_raycast(
-        Vector2(0,0),
-        Vector2(100,0.1),
-        [g1],100
-    ))

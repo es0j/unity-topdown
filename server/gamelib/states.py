@@ -1,3 +1,7 @@
+import json
+import time
+from pygame.math import Vector2
+
 class GameState:
     def __init__(self) -> None:
         #only players
@@ -16,6 +20,18 @@ class GameState:
         self.packetsQueue=[]
         
         self.gameObjects=[]
+        
+        self.map =[]
+        
+        self.loadMap("ce8d312982aa23a70bc954397e803050")
+        
+        self.dtime = 0
+        self.lastTime = time.time()
+        
+    def updateDtime(self):
+        currTime = time.time()
+        self.dtime = currTime - self.lastTime
+        self.lastTime = currTime
         
     def print(self):
         print("------ game state -------")
@@ -44,4 +60,28 @@ class GameState:
         self.tryRemoveFromList(self.gameObjects,gObject)
         
 
+    def loadMap(self,mapId):
+        
+        maxCoord=78
+        
+        self.map = [[1 for x in range(maxCoord+1)] for y in range(maxCoord+1)] 
+        
+        with open(f"maps/{mapId}.json") as f:
+            data=json.loads(f.read())
+        for i in data:
+            if i["key"]=="Collision":
+                tilemap = i["tiles"]
+        for t in tilemap:
+            x = t["position"]["x"]
+            y = t["position"]["y"]
+            
+            maxCoord = max(maxCoord,x)
+            maxCoord = max(maxCoord,y)
+            self.map[int(y)][int(x)]=0
+        
+            
+        #for l in self.map:
+        #    print("".join([str(k) for k in l]))
+
+        
 game_state = GameState()
