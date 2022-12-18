@@ -14,6 +14,11 @@ public class PlayerPacketHandler : PacketHandler
     public override void HandleShoot(Shoot p)
     {
         Debug.Log("Replicating weapon visuals");
+        if (!pController)
+        {
+            Debug.LogWarning("no pController attached");
+            return;
+        }
         if (pController.currWeaponController)
         {
             pController.currWeaponController.ShootVisual();    

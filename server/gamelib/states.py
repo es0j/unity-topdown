@@ -16,7 +16,7 @@ class GameState:
         #only NPCs
         self.npcs ={}
 
-        #packets to be sent to server
+        #packets to be sent from server
         self.packetsQueue=[]
         
         self.gameObjects=[]
@@ -28,6 +28,11 @@ class GameState:
         self.dtime = 0
         self.lastTime = time.time()
         
+        #print(self.map)
+    
+    def get_clients(self):
+        return list(self.clients.values())
+    
     def updateDtime(self):
         currTime = time.time()
         self.dtime = currTime - self.lastTime
@@ -79,9 +84,9 @@ class GameState:
             maxCoord = max(maxCoord,y)
             self.map[int(y)][int(x)]=0
         
-            
-        #for l in self.map:
-        #    print("".join([str(k) for k in l]))
+    def print_map(self):  
+        for l in self.map:
+            print("".join([str(k) for k in l]))
 
         
 game_state = GameState()

@@ -33,14 +33,14 @@ def SolvePathFinding(matrix,vstart : Vector2, vend : Vector2):
     #print(grid.grid_str(path=path, start=start, end=end))
     #print(path)
     
-    return [Vector2(i[0],i[1]) for i in path]
+    return [Vector2(i[0],i[1]) for i in path]+[vend]
 
 
 
 
 #based on https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_RayCastDDA.cpp
 #Do a DDA raycast
-def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDistance : float):
+def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDistance : float,tilemap : list):
 
     vRayStart = vPlayer
     vRayDir = (vTarget - vPlayer).normalize()
@@ -86,7 +86,12 @@ def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDis
             fDistance = vRayLength1D.y
             vRayLength1D.y += vRayUnitStepSize.y
 
+
+        #vMapCheck.x
         checkedPoint = vRayStart + vRayDir * fDistance
+        
+        if (tilemap[int(vMapCheck.y)][int(vMapCheck.x)]==0):
+            return None,checkedPoint
         
         for e in gameObjectList:
              #check if element is present on list

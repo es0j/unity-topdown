@@ -13,13 +13,23 @@ public class PlayerController : MonoBehaviour
     public float speedMultiplier=10f;
     private Rigidbody2D rb;
     private Vector2 CurrentSpeed;
-    
+
+    private Camera cameraComp;
     // Start is called before the first frame update
     void Start()
     {
         weaponList = Resources.LoadAll<GameObject>("Weapons");
         rb = GetComponent<Rigidbody2D>();
         SwitchToWeapon(0);
+        if (HasAuthority)
+        {
+            
+        }
+        else
+        {
+            rb.isKinematic  = true;
+        }
+        
 
     }
     public void MoveHorizontal(float input)

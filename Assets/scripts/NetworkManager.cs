@@ -30,7 +30,12 @@ public class NetObject
         {
             foreach (string pkt in netPackets[(int)pType])
             {
-                Debug.Log("delivbering pkt"+pType+reference);
+                if (!reference)
+                {
+                    Debug.LogWarning("Instance not set for pkt= "+pkt);
+                    return;
+                }
+                //Debug.Log("delivbering pkt"+pType+reference);
                 PacketHandler pHandler = reference.GetComponent<PacketHandler>();
                 if (pHandler)
                 {
@@ -129,6 +134,7 @@ public class NetworkManager : MonoBehaviour
         sw.Flush();
         
         string msg = sr.ReadLine();
+        Debug.Log("Server Hello : " +msg);
         ServerHello hello = JsonConvert.DeserializeObject<ServerHello>(msg);
         
         //register player as netid
