@@ -21,6 +21,11 @@ class Player(Client):
         #print("replicating movement")
         Entity.sync_send_to_all(self.getInfoUpdatePacket(),ignoreClients=[self])
         
+    def handle_player_weapon(self, msg):
+        print("changing weapon",msg)
+        self.currentWeapon = self.inventory[msg.weapon_id]
+        Entity.sync_send_to_all(msg,ignoreClients=[self])
+        
 
     def handle_shoot(self, msg):
         Entity.sync_send_to_all(msg,ignoreClients=[self])

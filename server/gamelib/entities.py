@@ -6,7 +6,6 @@ from enum import IntEnum, auto
 from json import load as json_load
 from pydantic import BaseModel, Field
 
-from pygame.math import Vector2
 from typing import Literal, Union
 
 from .packets import *
@@ -105,8 +104,6 @@ class Monster(Entity):
     def __init__(self,id,gid,vPosition):
         super().__init__(id,gid,vPosition)
         game_state.enemies[self.id]=self       
-        self.target=None
-        self.path=[]
     
     def get_closest_client(self):
         return self.get_closest_entity(game_state.get_clients())

@@ -14,14 +14,10 @@ public class NetObject
 {
     public int id;
     public GameObject reference;
-    public Queue<string>[] netPackets = new Queue<string>[Enum.GetValues(typeof(PcktType)).Length];
+    public Queue<string>[] netPackets = Enumerable.Range(0,Enum.GetValues(typeof(PcktType)).Length).Select(i => new Queue<string>()).ToArray();
     
     public NetObject(GameObject gref){
         reference = gref;
-        foreach (PcktType pType in Enum.GetValues(typeof(PcktType)))
-        {
-            netPackets[(int)pType] = new Queue<string>();
-        }
     }
 
     public void DeliverPackets()
@@ -87,12 +83,13 @@ public class NetworkManager : MonoBehaviour
     //holds Packets to be processed as pEnter
     private Queue<PlayerEnter> pEnterList = new Queue<PlayerEnter>();
     
-    //holds Packets to be processed as pEnter
+    //holds Packets to be processed as pLeave
     private Queue<PlayerLeave> pLeaveList = new Queue<PlayerLeave>();
 
-    private PlayerInfo playerState = new PlayerInfo();
-    private Queue<Packet> ActionsQueue = new Queue<Packet>();
+    //holds packets to be sent to server
+    public Queue<Packet>[] PlayerPackets = Enumerable.Range(0,Enum.GetValues(typeof(PcktType)).Length).Select(i => new Queue<Packet>()).ToArray();
 
+    
     public GameObject player;
     #region Singleton
     public static NetworkManager instance=null;
@@ -104,14 +101,20 @@ public class NetworkManager : MonoBehaviour
             return;
         }
         instance = this;
+        
+
     }
     #endregion
     
     
     void Start()
     {
+        
+
         Application.runInBackground = true;
         TcpClient client = new TcpClient();
+
+        
         //client.ReceiveTimeout = 1000;
         if (!client.ConnectAsync("127.0.0.1", 9090).Wait(10000))
         {
@@ -125,7 +128,7 @@ public class NetworkManager : MonoBehaviour
         rt = new Thread(() => ReaderThread());
         wt = new Thread(() => WriterThread());
         
-        
+
         //send first hand shake synchronous
         
         
@@ -161,6 +164,10 @@ public class NetworkManager : MonoBehaviour
             {
                 Debug.Log("Spawning object of GID: " + p.gid);
                 GameObject newObject = Instantiate(entitiesTypes[p.gid]);
+                if (!netObjects.ContainsKey(p.id))
+                {
+                    netObjects[p.id] = new NetObject(null);     
+                }
                 netObjects[p.id].reference = newObject;
             }
             pEnterList.Clear();
@@ -220,15 +227,12 @@ public class NetworkManager : MonoBehaviour
         {
             Debug.LogError("ExceptionReader: " + e);
             mutexReader.ReleaseMutex();
-            
-            
-            
         }
     }
     
     public void  WriterThread()
     {
-        string lastState="";
+        
         try
         {
             Debug.Log("WriterThread start");
@@ -237,28 +241,20 @@ public class NetworkManager : MonoBehaviour
 
                 mutexWriter.WaitOne();
 
-                foreach (Packet p in ActionsQueue)
+                for (int t = 0; t < Enum.GetValues(typeof(PcktType)).Length; t++)
                 {
-                    sw.WriteLine(p.ToJson(netId));
-                }
-                ActionsQueue.Clear();
-
-                if (playerState != null)
-                {
-                    string newState = playerState.ToJson(netId);
-                    if (lastState != newState)
+                    foreach (Packet p in PlayerPackets[t])
                     {
-                        sw.WriteLine(newState);
+                        sw.WriteLine(p.ToJson(netId));
                     }
-                    lastState = newState;
+                    PlayerPackets[t].Clear();
+                    
                 }
-                playerState = null;
                 
-
                 mutexWriter.ReleaseMutex();
 
                 sw.Flush();
-                Thread.Sleep(1000);
+                Thread.Sleep(10);
             }
         }
         catch (Exception e)
@@ -272,14 +268,15 @@ public class NetworkManager : MonoBehaviour
     public void SendAction(Packet packet)
     {
         mutexWriter.WaitOne();
-        ActionsQueue.Enqueue(packet);
+        PlayerPackets[(int)packet.type].Enqueue(packet);
         mutexWriter.ReleaseMutex();
     }
     
-    public void SendState(PlayerInfo p)
+    public void SendState(Packet packet)
     {
         mutexWriter.WaitOne();
-        playerState = p;
+        PlayerPackets[(int)packet.type].Clear();
+        PlayerPackets[(int)packet.type].Enqueue(packet);
         mutexWriter.ReleaseMutex();
     }
 
@@ -287,8 +284,6 @@ public class NetworkManager : MonoBehaviour
     {
         isRunning = false;
         s.Close();
-        
-        
         rt.Join();
         wt.Join();
         
@@ -297,7 +292,7 @@ public class NetworkManager : MonoBehaviour
 
     public void ParsePacket(string msg)
     {
-        Debug.Log("ParsePacket recved: "+msg);
+        //Debug.Log("ParsePacket recved: "+msg);
         Packet p = JsonConvert.DeserializeObject<Packet>(msg);
         
         switch (p.type)
@@ -320,11 +315,7 @@ public class NetworkManager : MonoBehaviour
                 }
                 netObjects[p.id].EnqueuePckt(p.type,msg);
                 break;
-                
         }
-        
-        
-        
     }
 }
 

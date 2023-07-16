@@ -1,10 +1,17 @@
 
-from pygame.math import Vector2
-import math
-
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
+from pathfinding.finder.best_first import BestFirst
+from pathfinding.finder.dijkstra import DijkstraFinder
+from pathfinding.finder.breadth_first import BreadthFirstFinder
+from pathfinding.finder.bi_a_star import BiAStarFinder
+from pathfinding.finder.ida_star import IDAStarFinder
+
+
+import math 
+
+from pygame import Vector2
 
 def position2tile(pos : Vector2):
     x, y = pos.x,pos.y
@@ -15,13 +22,22 @@ def position2tile(pos : Vector2):
     return Vector2(int(x), int(y))
 
 
-def SolvePathFinding(matrix,vstart : Vector2, vend : Vector2):
-    
-    
-    grid = Grid(matrix=matrix)
-    last_matrix_index = len(matrix)-1
+def SolvePathFinding(matrix,vstart : Vector2, vend : Vector2,mapMultiplier=1):
+    #return [Vector2(43,28)]
+    #print("*",end="")
+    #print("natural",int(vstart.x), int(vstart.y))
+    matrixCopy=matrix[::]
 
+    vstart = vstart/mapMultiplier
+    vend = vend/mapMultiplier
+    
+    #target is alway walkable
+    matrixCopy[int(vend.y)][int(vend.x)] = 1
+    
+    grid = Grid(matrix=matrixCopy)
+    
 
+    #print("transformed",int(vstart.x), int(vstart.y))
     start = grid.node(int(vstart.x), int(vstart.y))
     end = grid.node(int(vend.x), int(vend.y))
 
@@ -33,17 +49,28 @@ def SolvePathFinding(matrix,vstart : Vector2, vend : Vector2):
     #print(grid.grid_str(path=path, start=start, end=end))
     #print(path)
     
-    return [Vector2(i[0],i[1]) for i in path]+[vend]
-
+    result = [Vector2(i[0],i[1]) for i in path]+[vend]
+    result.pop(0)
+    #print("result",result)
+    normalized =  [ i*mapMultiplier for i in result]
+    
+    #print("normalized path=",normalized)
+    return normalized
 
 
 
 #based on https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_RayCastDDA.cpp
 #Do a DDA raycast
-def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDistance : float,tilemap : list):
 
+def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDistance : float,tilemap : list):
+    #print(".",end="")
     vRayStart = vPlayer
-    vRayDir = (vTarget - vPlayer).normalize()
+    deltaDir = vTarget - vPlayer
+    
+    if deltaDir==Vector2(0,0):
+        return None,Vector2(0,0)
+    
+    vRayDir = deltaDir.normalize()
 
     #avoid 0 division, small number, small error
     if (vRayDir.x==0):
@@ -76,6 +103,20 @@ def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDis
 
     fDistance = 0.0
     while (fDistance < fMaxDistance):
+
+        #vMapCheck.x
+        checkedPoint = vRayStart + vRayDir * fDistance
+        
+        if int(vMapCheck.y) < len(tilemap) and int(vMapCheck.x) < len(tilemap[0]):
+            if (tilemap[int(vMapCheck.y)][int(vMapCheck.x)]==0):
+                return None,checkedPoint
+        
+        for e in gameObjectList:
+             #check if element is present on list
+            if (e.checkCollision(checkedPoint)):
+                # Calculate intersection location and return the gameObject collided with
+                return  e,checkedPoint
+        
         # Walk along shortest path
         if (vRayLength1D.x < vRayLength1D.y):
             vMapCheck.x += vStep.x
@@ -87,18 +128,8 @@ def do_raycast(vPlayer :Vector2 ,vTarget : Vector2,gameObjectList : list,fMaxDis
             vRayLength1D.y += vRayUnitStepSize.y
 
 
-        #vMapCheck.x
-        checkedPoint = vRayStart + vRayDir * fDistance
+
         
-        if (tilemap[int(vMapCheck.y)][int(vMapCheck.x)]==0):
-            return None,checkedPoint
-        
-        for e in gameObjectList:
-             #check if element is present on list
-            if (e.checkCollision(checkedPoint)):
-                # Calculate intersection location and return the gameObject collided with
-                return  e,checkedPoint
-            
     return None,Vector2(0,0)
 
 

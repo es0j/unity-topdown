@@ -14,7 +14,8 @@ public enum PcktType
     PlayerLeave,
     PlayerStats,
     Attack,
-    Shoot
+    Shoot,
+    PlayerWeapon
 }
 
 public class Packet
@@ -95,4 +96,13 @@ public class PlayerStats : Packet
         type = PcktType.PlayerStats;
     }
     public float health;
+}
+
+public class PlayerWeapon : Packet
+{
+    public PlayerWeapon()
+    {
+        type = PcktType.PlayerWeapon;
+    }
+    public int weapon_id;
 }

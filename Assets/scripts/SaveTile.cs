@@ -11,7 +11,7 @@ public class SaveTile : MonoBehaviour
     // Start is called before the first frame update
     public void Start()
     {
-        Debug.Log("saving");
+        
         List<TilemapData> data = new List<TilemapData>();
         
         Tilemap[] tiles =  FindObjectsOfType<Tilemap>();
@@ -45,9 +45,12 @@ public class SaveTile : MonoBehaviour
         string toSave = JsonConvert.SerializeObject(data);
         var hash = new Hash128();
         hash.Append(toSave);
-        StreamWriter writer = new StreamWriter("server/maps/"+hash.ToString()+".json", false);
+        //replace gamemap to hash later
+        string fname = "server/maps/" + "gamemap" + ".json";
+        StreamWriter writer = new StreamWriter(fname, false);
         writer.WriteLine(toSave);
         writer.Close();
+        Debug.Log("Exporting tilemap as "+fname);
         //FileHandler.SaveToJSON<TilemapData>(data, filename);
     }
 }

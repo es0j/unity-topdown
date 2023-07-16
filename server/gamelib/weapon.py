@@ -1,10 +1,10 @@
 from .states import game_state
-from pygame import Vector2
+from .libmath import Vector2
 from .libmath import do_raycast
 
 class Weapon:
     def __init__(self,damage=10):
-        self.damage=60
+        self.damage=damage
         self.ammo=100
         self.cooldown=0
         
@@ -15,12 +15,13 @@ class Weapon:
         
         #print(f"handle collision {startPos} -> {endPos}",[e.position for e in collidersGO])
         
-        collided,position= do_raycast(startPos, endPos,collidersGO,100,game_state.map)
+        collided,position= do_raycast(startPos, endPos,collidersGO,100,game_state.collisionMap)
         #print(collided,position)
         if collided!=None:
             self.shoot_enemy(collided)
             
     def shoot_enemy(self,target):
+        print("Shooting enemy",self.damage)
         target.TakeDamage(self.damage)
         
         

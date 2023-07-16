@@ -1,9 +1,9 @@
 
 from enum import IntEnum, auto
 from json import load as json_load
-from pydantic import BaseModel, Field
-from pygame.math import Vector2
+from pydantic import BaseModel, Field,RootModel
 from typing import Literal, Union
+from .libmath import Vector2
 
 class MsgType(IntEnum):
     Error = 0
@@ -15,6 +15,7 @@ class MsgType(IntEnum):
     PlayerStats = auto()
     Attack = auto()
     Shoot = auto()
+    PlayerWeapon = auto()
 
 
 class MsgError(BaseModel):
@@ -39,7 +40,6 @@ class MsgPlayerInfo(BaseModel):
     x: float
     y: float
     rotation: float
-    
 
 class MsgPlayerEnter(BaseModel):
     type: Literal[MsgType.PlayerEnter] = MsgType.PlayerEnter
@@ -68,7 +68,12 @@ class MsgShoot(BaseModel):
     start_y: float
     end_x: float
     end_y: float
+    
+class MsgPlayerWeapon(BaseModel):
+    type: Literal[MsgType.PlayerWeapon] = MsgType.PlayerWeapon
+    id: int
+    weapon_id: int
+    
 
-
-class Msg(BaseModel):
-    __root__: Union[MsgError, MsgPlayerInfo, MsgPlayerStats, MsgAttack, MsgShoot] = Field(..., discriminator="type")
+class Msg(RootModel):
+    root: Union[MsgError, MsgPlayerInfo, MsgPlayerStats, MsgAttack, MsgShoot, MsgPlayerWeapon] = Field(..., discriminator="type")

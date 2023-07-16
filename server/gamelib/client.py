@@ -44,23 +44,32 @@ class Client(Entity):
             self.handle_player_info(message)
         if message.type == MsgType.Shoot:
             self.handle_shoot(message)
+        if message.type == MsgType.PlayerWeapon:
+            self.handle_player_weapon(message)
     
     def send_error(self, msg, disconnect=True):
         self.sync_send(MsgError(msg=msg))
         self.error = disconnect
     
     async def loop(self):
-        while not self.error:
-            data = await self.reader.readline()
-            #print("data recived: ",data)
-            if not data:
-                break            
-            message = Msg.parse_raw(data, content_type="application/json").__root__
+        
+        try:
+            while not self.error:
+                data = await self.reader.readline()
+                if not data:
+                    break                  
+                
             
-            self.parsePacket(message)
+                #print("data recived: ",data)
             
-            await self.writer.drain()
-
+                message = Msg.parse_raw(data, content_type="application/json").root
+                
+                self.parsePacket(message)
+                
+                await self.writer.drain()
+                
+        except ConnectionResetError:
+                print("[Client Disconected]")
 
 
             

@@ -41,14 +41,18 @@ class Task:
                 self.isFinished = True
             self.lastTime = currentTime
 
-class server_class():
+class Base_server():
     def __init__(self,sleepTime=0.01):
+        self.startTime=time.time()
+        self.totalFrames=0
+        self.totalDtime=0
         self.id_counter = inf_counter(1)
         self.lastTime = time.time()
         self.listen_adress = "127.0.0.1"
         self.port = 9090
         self.sleepTime = sleepTime
         self.tasks = []
+        self.is_running = True
         asyncio.run(self.main())
         
     def AddTasks(self,t):
@@ -61,15 +65,7 @@ class server_class():
                 if distance < (e.radius + c.radius)*0.7:
                     e.OnCollision(c)
                     
-    #implements example of courotine for a task      
-    def update_enemyAI(self):
-        while 1:
-            for e in game_state.enemies.values():
-                e.target = e.get_closest_client()
-                if(e.target!=None):
-                    e.path = SolvePathFinding(game_state.map,e.position,e.target.position)
-            yield 2
-    
+
     #overwrite to implement game logic  
     def start(self):
         return
@@ -101,13 +97,24 @@ class server_class():
         self.start()
         await self.flushPacketQueue()
         
-        while 1:
+        while self.is_running:
+            t1 = time.time()
             game_state.updateDtime()
             self.update()
             await self.flushPacketQueue()
             
+            t2 = time.time()
+            dtime = t2-t1
+            
+            #if (dtime > self.sleepTime):
+            #    print(f"tick is late ({dtime}) seconds, ",len(game_state.enemies))
             #game_state.print()
-            await asyncio.sleep(self.sleepTime)
+            self.totalDtime+=dtime
+            self.totalFrames+=1
+            if(self.totalFrames%100==0):
+                print("Avg time: ",(self.totalDtime) / self.totalFrames)
+            await asyncio.sleep(self.sleepTime - dtime)
+            
               
     async def main(self):
         await asyncio.gather(self.server_loop(),self.start_server())

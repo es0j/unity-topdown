@@ -1,6 +1,6 @@
 import json
 import time
-from pygame.math import Vector2
+from .libmath import Vector2
 
 class GameState:
     def __init__(self) -> None:
@@ -21,17 +21,19 @@ class GameState:
         
         self.gameObjects=[]
         
-        self.map =[]
         
-        self.loadMap("ce8d312982aa23a70bc954397e803050")
+        #self.map = self.loadMap("Pathfinding",22,19)
+        self.map = self.loadMap("Collision",100,100)
+        self.mapMultiplier=4
+        self.collisionMap = self.loadMap("Collision",100,100)
+        self.spawners = self.loadTiles("Spawner")
         
         self.dtime = 0
         self.lastTime = time.time()
         
-        #print(self.map)
     
     def get_clients(self):
-        return list(self.clients.values())
+        return list(self.clients.values())+list(self.npcs.values())
     
     def updateDtime(self):
         currTime = time.time()
@@ -64,25 +66,29 @@ class GameState:
         self.tryRemoveFromDict(self.npcs,gObject)
         self.tryRemoveFromList(self.gameObjects,gObject)
         
-
-    def loadMap(self,mapId):
+    def loadTiles(self,key):
+        vecList = []
         
-        maxCoord=78
-        
-        self.map = [[1 for x in range(maxCoord+1)] for y in range(maxCoord+1)] 
-        
-        with open(f"maps/{mapId}.json") as f:
+        with open(f"maps/gamemap.json") as f:
             data=json.loads(f.read())
         for i in data:
-            if i["key"]=="Collision":
+            if i["key"]==key:
                 tilemap = i["tiles"]
         for t in tilemap:
             x = t["position"]["x"]
             y = t["position"]["y"]
-            
-            maxCoord = max(maxCoord,x)
-            maxCoord = max(maxCoord,y)
-            self.map[int(y)][int(x)]=0
+            vecList.append(Vector2(x,y))
+        return vecList
+        
+    def loadMap(self,key,max_x,max_y):
+        
+        map = [[1 for x in range(max_x)] for y in range(max_y)] 
+        vecList = self.loadTiles(key)
+        for v in vecList:
+            map[int(v.y)][int(v.x)]=0
+        
+        #self.print_map()
+        return map
         
     def print_map(self):  
         for l in self.map:

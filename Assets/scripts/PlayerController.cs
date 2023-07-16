@@ -43,8 +43,19 @@ public class PlayerController : MonoBehaviour
     }
     public void SwitchToWeapon(uint weaponId){
         //spawn weapon attatched
+        if (currWeaponController)
+        {
+            Destroy(currWeaponController.gameObject);
+        }
         GameObject spawnedWeapon =  Instantiate(weaponList[weaponId],transform);
+        Debug.Log("Spawning weapon");
         currWeaponController = spawnedWeapon.GetComponent<WeaponController>();
+        if (HasAuthority)
+        {
+            PlayerWeapon p = new PlayerWeapon();
+            p.weapon_id = (int)weaponId;
+            NetworkManager.instance.SendState(p);
+        }
     }
     
 
@@ -56,6 +67,16 @@ public class PlayerController : MonoBehaviour
             return;
         }
         CurrentSpeed = Vector2.zero;
+        
+        if (Input.GetKey(KeyCode.Alpha1))
+        {
+            SwitchToWeapon(0);
+        }
+        if (Input.GetKey(KeyCode.Alpha2))
+        {
+            SwitchToWeapon(1);
+        }
+        
         
         if (Input.GetKey(KeyCode.W))
         {
